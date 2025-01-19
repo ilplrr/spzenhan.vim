@@ -20,21 +20,28 @@ if !exists('g:spzenhan#wsl')
     endif
 endif
 
-if has('win32') || has('win32unix') || g:spzenhan#wsl == 1
-    "let g:spzenhan#default_status = 0
+function! s:find_executable_file(files) abort
+    for file in a:files
+        if executable(file)
+            return file
+        endif
+    endfor
+    return v:null " not found
+endfunction
 
+if has('win32') || has('win32unix') || g:spzenhan#wsl == 1
     if !exists('g:spzenhan#executable')
         let g:spzenhan#executable = 'spzenhan.exe'
-        let command_result = system([g:spzenhan#executable])
-        if v:shell_error != 0 && v:shell_error != 1
-            let g:spzenhan#executable = expand('<sfile>:h:h') . '/zenhan/spzenhan.exe'
-            if (getftype(g:spzenhan#executable) != "file")
-                let g:spzenhan#executable = expand('<sfile>:h:h') . '/spzenhan.exe'
-                if (getftype(g:spzenhan#executable) != "file")
-                    echo "spzenhan.exe is not found"
-                    finish
-                endif
-            endif
+        let executable = s:find_executable_file([
+                    \ 'spzenhan.exe',
+                    \ expand('<sfile>:h:h') . '/zenhan/spzenhan.exe',
+                    \ expand('<sfile>:h:h') . '/spzenhan.exe',
+                    \ ])
+        if executable isnot v:null
+            let g:spzenhan#executable = executable
+        else
+            echo "spzenhan.exe is not found"
+            finish
         endif
     endif
 
